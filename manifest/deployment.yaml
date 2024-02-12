@@ -65,6 +65,7 @@ spec:
             - readOnly: false
               mountPath: /run/sockets
               name: emptyDir
+          containerPort: 9002    
           args:
             - "serve"
             - "--policy=/policy/kyverno-policy.yaml"
