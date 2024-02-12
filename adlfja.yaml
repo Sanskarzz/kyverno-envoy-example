@@ -1,0 +1,15 @@
+apiVersion: json.kyverno.io/v1alpha1
+    kind: ValidatingPolicy
+    metadata:
+      name: check-external-auth
+    spec:
+      rules:
+        - name: 
+          assert:
+            all:
+            - message: "DELETE calls are not allowed"
+              check:
+                attribute:
+                    request:
+                        http:
+                            (method == 'DELETE'): false
