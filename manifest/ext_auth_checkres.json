@@ -1,0 +1,54 @@
+{
+    "attributes": {
+      "source": {
+        "address": {
+          "socketAddress": {
+            "address": "192.168.0.1",
+            "portValue": 12345
+          }
+        }
+      },
+      "destination": {
+        "address": {
+          "socketAddress": {
+            "address": "192.168.0.2",
+            "portValue": 80
+          }
+        }
+      },
+      "request": {
+        "http": {
+          "id": "1234567890",
+          "method": "GET",
+          "headers": {
+            ":method": "GET",
+            ":path": "/some/path",
+            ":authority": "example.com",
+            "x-forwarded-proto": "http",
+            "x-request-id": "abcdef123456",
+            "authorization": "Bearer some-token",
+            "user-agent": "curl/7.58.0",
+            "accept": "*/*"
+          },
+          "path": "/some/path",
+          "host": "example.com",
+          "scheme": "http",
+          "protocol": "HTTP/1.1",
+          "body": "body",
+          "raw_body":"raw_body"
+        }
+      },
+      "context_extensions": {},
+      "metadata_context": {
+        "filter_metadata": {},
+        "typed_filter_metadata": {}
+      },
+      "route_metadata_context": {
+        "filter_metadata": {},
+        "typed_filter_metadata": {}     
+      },
+      "tls_session": {
+        "sni": "abcdef"
+      } 
+    }
+  }
