@@ -1,0 +1,92 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: zk-kafka-address
+spec:
+  rules:
+  - name: k-kafka-address
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment 
+    generate:
+      apiversion: apps/v1
+      kind: Deployment
+      metadata:
+        name: example-app
+        labels:
+          app: example-app
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: example-app
+        template:
+          metadata:
+            labels:
+              app: example-app
+          spec:
+            initContainers:
+              - name: proxy-init
+                image: sanskardevops/proxyinit:latest
+                # Configure the iptables bootstrap script to redirect traffic to the
+                # Envoy proxy on port 8000, specify that Envoy will be running as user
+                # 1111, and that we want to exclude port 8282 from the proxy for the
+                # OPA health checks. These values must match up with the configuration
+                # defined below for the "envoy" and "opa" containers.
+                args: ["-p", "8000", "-u", "1111", "-w", "8282"]
+                securityContext:
+                  capabilities:
+                    add:
+                      - NET_ADMIN
+                  runAsNonRoot: false
+                  runAsUser: 0
+            containers:
+              - name: app
+                image: sanskardevops/testserver:latest
+                ports:
+                  - containerPort: 8080
+              - name: envoy
+                image: envoyproxy/envoy:v1.20.0
+                env:
+                  - name: ENVOY_UID
+                    value: "1111"
+                volumeMounts:
+                  - readOnly: true
+                    mountPath: /config
+                    name: proxy-config
+                  - readOnly: false
+                    mountPath: /run/sockets
+                    name: emptyDir
+                args:
+                  - "envoy"
+                  - "--log-level"
+                  - "debug"
+                  - "--config-path"
+                  - "/config/envoy.yaml"
+              - name: opa-envoy
+                image: sanskardevops/kyverno-envoy:0.0.1
+                securityContext:
+                  runAsUser: 1111
+                volumeMounts:
+                  - readOnly: true
+                    mountPath: /policy
+                    name: kyverno-policy
+                  - readOnly: false
+                    mountPath: /run/sockets
+                    name: emptyDir
+                containerPort: 9002    
+                args:
+                  - "serve"
+                  - "--policy=/policy/kyverno-policy.yaml"
+                  - "--address=localhost:9002"         
+            volumes:
+              - name: proxy-config
+                configMap:
+                  name: proxy-config
+              - name: kyverno-policy
+                configMap:
+                  name: kyverno-policy
+              - name: emptyDir
+                emptyDir: {}      
